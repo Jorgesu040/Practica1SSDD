@@ -6,8 +6,6 @@
 
 void clientFileManager::resolveClientMessages(int clientId)
 {
-
-    string userName = "";
     vector<unsigned char> buffer;
     bool logOut = false;
     do
@@ -27,7 +25,7 @@ void clientFileManager::resolveClientMessages(int clientId)
             unpackv(buffer, param1.data(), param1.size());
             // Crear la base datos
             FileManager fileManager(param1);
-            // Guardamos la bbdd
+            // Guardamos la instancia
             fileManagerInstances[clientId] = fileManager;
             buffer.clear();
         }
@@ -43,23 +41,22 @@ void clientFileManager::resolveClientMessages(int clientId)
         {
             vector<string> res = fileManagerInstances[clientId].listFiles();
 
+            buffer.clear();
+
+            pack(buffer, res.size());
             // Empaquetar cada elemento de vector
             for (auto &str : res)
             {
-                pack(buffer, res.size());
-                packv(buffer, res.data(), res.size());
+                pack(buffer, str.size());
+                packv(buffer, str.data(), str.size());
             }
-
-            buffer.clear();
-            pack(buffer, res);
-
             
         }
         break;
         case readFileF:
         {
             
-            string fileName = "";
+            string fileName;
             vector<unsigned char> fileData;
             fileName.resize(unpack<long int>(buffer));
             unpackv(buffer, fileName.data(), fileName.size());
@@ -69,7 +66,6 @@ void clientFileManager::resolveClientMessages(int clientId)
             buffer.clear();
             pack(buffer, fileData.size());
             packv(buffer, fileData.data(), fileData.size());
-
 
         }
         break;
@@ -84,8 +80,7 @@ void clientFileManager::resolveClientMessages(int clientId)
             unpackv(buffer, fileData.data(), fileName.size());
 
             fileManagerInstances[clientId].writeFile(fileName, fileData);
-            
-            buffer.clear();
+
         }
         break;
         

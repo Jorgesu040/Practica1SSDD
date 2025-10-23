@@ -1,4 +1,3 @@
-
 #include "utils.h"
 #include "filemanager.h"
 #include <string>
@@ -14,16 +13,15 @@ public:
 		listFilesF,
 		readFileF,
 		writeFileF,
-		ack
+		ack = 5
 	}msgTypes;
 
 
 	// Instances de bases de datos creadas por los clientes
-	// Formato clave: clientID - valor: base de datos
+	// Formato clave: clientID - valor: FileManager
 	static inline map<int, FileManager> fileManagerInstances; 
 
-	// Mapa para relacionar instancias de bases de datos con conexiones de clientes
-	// Formato clave: puntero a base de datos - valor: serverId
+	// id del servidor: serverID
 	static inline int serverID;
 
 
