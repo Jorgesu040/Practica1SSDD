@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include <list>
+#include <vector>
 #include <atomic>
 #include "clientFileManager.h"
 #include "BrokerServer.h"
@@ -17,7 +17,7 @@ using namespace std;
 
 // Variable global para controlar la salida del servidor
 static atomic<bool> serverExit = false;
-static list<int> activeClients;
+static vector<int> activeClients;
 static mutex clientsMutex;
 
 // Función para leer comandos desde stdin
@@ -50,12 +50,22 @@ void readCommands() {
 }
 
 // Función wrapper para manejar desconexión de clientes
-void handleClient(int clientId) {
+void handleConnection(int clientId) {
 	clientFileManager::resolveClientMessages(clientId);
 
 	// Remover cliente de la lista cuando se desconecta
 	clientsMutex.lock();
-	activeClients.remove(clientId);
+
+	auto it = activeClients.begin();
+
+	while (it != activeClients.end()) {
+		if (*it == clientId) {
+			activeClients.erase(it);
+			break;
+		}
+		++it;
+	}
+
 	unsigned long remaining = activeClients.size();
 	clientsMutex.unlock();
 
@@ -63,31 +73,44 @@ void handleClient(int clientId) {
 }
 
 int main(int argc, char **argv) {
-	// Parse command line arguments: [server_port] [broker_ip] [broker_port]
+	// Parse command line arguments: [server_ip] [server_port] [broker_ip] [broker_port]
+	string serverIp = SERVER_IP;
 	int port = SERVER_PORT; // default port
 	string brokerIp = BROKER_IP;
 	int brokerPort = BROKER_PORT;
 
 	if (argc >= 2) {
-		port = atoi(argv[1]);
+		serverIp = argv[1];
+		cout << "Usando IP del servidor: " << serverIp << endl;
+		cout << "Y por defecto: [SERVER_PORT]" << SERVER_PORT << "[BROKER_IP]" << BROKER_IP << "[BROKER_PORT]" << BROKER_PORT << endl;
+	}
+	if (argc >= 3) {
+		port = atoi(argv[2]);
 		if (port < 1024 || port > 65535) {
 			cout << "Número de puerto inválido (debe estar entre 1024-65535), usando el predeterminado: " << SERVER_PORT
 					<< endl;
 			port = SERVER_PORT;
 		}
-	}
-
-	if (argc >= 3) {
-		brokerIp = argv[2];
+		cout << "Usando IP del servidor: " << serverIp << " Puerto del servidor: " << port << endl;
+		cout << "Y por defecto: [BROKER_IP]" << BROKER_IP << "[BROKER_PORT]" << BROKER_PORT << endl;
 	}
 
 	if (argc >= 4) {
-		brokerPort = atoi(argv[3]);
+		brokerIp = argv[3];
+		cout << "Usando IP del servidor: " << serverIp << " Puerto del servidor: " << port << " IP del broker: " << brokerIp
+				<< endl;
+		cout << "Y por defecto: [BROKER_PORT]" << BROKER_PORT << endl;
+	}
+
+	if (argc >= 5) {
+		brokerPort = atoi(argv[4]);
 		if (brokerPort < 1024 || brokerPort > 65535) {
 			cout << "Puerto del broker inválido (debe estar entre 1024-65535), usando el predeterminado: " << BROKER_PORT
 					<< endl;
 			brokerPort = BROKER_PORT;
 		}
+		cout << "Usando IP del servidor: " << serverIp << " Puerto del servidor: " << port << " IP del broker: " << brokerIp
+				<< " Puerto del broker: " << brokerPort << endl;
 	}
 
 	//start/open the server in a free port: 1067
@@ -97,7 +120,7 @@ int main(int argc, char **argv) {
 
 	// Conectar al broker y registrarse
 	cout << "Conectando al broker en " << brokerIp << ":" << brokerPort << "\n";
-	BrokerServer brokerConnection(brokerIp, brokerPort, SERVER_IP, port);
+	BrokerServer brokerConnection(brokerIp, brokerPort, serverIp, port);
 
 	if (brokerConnection.registrarEnBroker()) {
 		cout << "Servidor registrado exitosamente en el broker\n";
@@ -110,7 +133,7 @@ int main(int argc, char **argv) {
 	cout << "Escriba 'exit()' para apagar el servidor\n";
 
 	// Crear thread para leer comandos desde stdin
-	thread commandThread(readCommands);
+	thread *commandThread = new thread(readCommands);
 
 	vector<thread*> threads;
 
@@ -132,15 +155,15 @@ int main(int argc, char **argv) {
 		cout << "Clientes activos: " << numClients << endl;
 
 		//send/recv messages
-		auto *th = new thread(handleClient, clientId);
+		auto *th = new thread(handleConnection, clientId);
 		threads.push_back(th);  // Guardar referencia al thread
 	}
 
 	// Esperar a que termine el thread de comandos
-	if (commandThread.joinable()) {
-		commandThread.join();
+	if (commandThread->joinable()) {
+		commandThread->join();
+		delete commandThread;
 	}
-
 
 
 	// Esperar a que terminen todos los threads

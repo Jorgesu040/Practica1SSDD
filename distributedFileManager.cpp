@@ -10,6 +10,10 @@
 
 #define BROKER_ID "127.0.0.1"
 #define BROKER_PORT 1033
+
+#define DEFAULT_MY_IP "127.0.0.1"
+#define DEFAULT_MY_PORT 2067
+
 #define ERRORLOG(msg) std::cerr << "[ERROR] " << msg << " (" << __FILE__ << ":" << __LINE__ << ")" << std::endl;
 
 using namespace std;
@@ -21,7 +25,7 @@ static inline mutex serverMapMutex;
 
 
 static BrokerClient& getBroker() {
-    static BrokerClient broker(BROKER_ID, BROKER_PORT);
+    static BrokerClient broker(BROKER_ID, BROKER_PORT, DEFAULT_MY_IP, DEFAULT_MY_PORT);
     return broker;
 }
 
@@ -41,7 +45,7 @@ FileManager::~FileManager(){
 }
 
 FileManager::FileManager(string path){
-
+    
     vector<unsigned char> buffer;
 
     BrokerClient& broker = getBroker();
@@ -88,12 +92,6 @@ vector<string> FileManager::listFiles(){
 
     vector<string> listedFiles;
     listedFiles.resize(unpack<long int>(buffer));
-
-    for (auto &fileName : listedFiles) {
-        fileName.resize(unpack<long int>(buffer));
-        unpackv(buffer, fileName.data(), fileName.size());
-        std::cout << "Reading file: " << fileName << std::endl;
-    }
 
     if (unpack<clientFileManager::msgTypes>(buffer) != clientFileManager::ack){
         ERRORLOG("No se ha recibido el ack del servidor");

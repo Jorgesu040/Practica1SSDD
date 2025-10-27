@@ -10,11 +10,12 @@
 using namespace std;
 
 class BrokerClient {
-    unsigned int brokerServerId;
-
+    int brokerServerId;
+    string myIp;
+    int myPort = -1;
 
 public:
-    BrokerClient(const string& brokerAddress, int brokerPort);
+    BrokerClient(const string& brokerAddress, int brokerPort, const string &myIp, int myPort);
 
     BrokerDeObjetos::IpPuerto obtenerServidorDisponible();
 

@@ -1,27 +1,8 @@
 #include <iostream>
 #include "filemanager.h"
 
-#define DEFAULT_BROKER_IP "127.0.0.1"
-#define DEFAULT_BROKER_PORT 1033
-
 int main(int argc,char** argv)
 {
-	// Parse command line arguments: [broker_ip] [broker_port]
-	string brokerIp = DEFAULT_BROKER_IP;
-	int brokerPort = DEFAULT_BROKER_PORT;
-
-	if(argc >= 2) {
-		brokerIp = argv[1];
-	}
-	if(argc >= 3) {
-		brokerPort = atoi(argv[2]);
-		if(brokerPort < 1024 || brokerPort > 65535) {
-			cout << "Invalid port number (must be between 1024-65535), using default: " << DEFAULT_BROKER_PORT << endl;
-			brokerPort = DEFAULT_BROKER_PORT;
-		}
-	}
-
-	cout << "Connecting to broker at " << brokerIp << ":" << brokerPort << endl;
 
 	FileManager fm("FileManagerDir");
 	string command;

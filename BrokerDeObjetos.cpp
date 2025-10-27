@@ -88,6 +88,16 @@ void BrokerDeObjetos::resolverPeticion(int clientId) {
             case PETICION_SERVIDOR: {
                 std::cout << "Broker: PETICION_SERVIDOR para cliente " << clientId << std::endl;
 
+                long int clientIpLen = unpack<long int>(buffer);
+                std::string clientIp;
+                int clientPort;
+                
+                clientIp.resize(clientIpLen);
+                unpackv(buffer, clientIp.data(), clientIp.size());
+                clientPort = unpack<int>(buffer);
+                std::cout << "Broker: Peticion enviada por cliente con IP=" << clientIp << " port=" << clientPort << std::endl;
+            
+
                 buffer.clear();
 
                 if (hayServidoresDisponibles()) {
@@ -98,6 +108,7 @@ void BrokerDeObjetos::resolverPeticion(int clientId) {
                     packv(buffer, serverIP.ip.data(), serverIP.ip.size());
                     pack(buffer, serverIP.port);
 
+                    // Registrar contador de conexión usando clientId
                     registrarConexionCliente(serverIP, clientId);
                 } else {
                     pack(buffer, ERROR_NO_SERVIDORES);

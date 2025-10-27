@@ -9,8 +9,10 @@
 
 using namespace std;
 
-BrokerClient::BrokerClient(const string &brokerAddress, int brokerPort) {
+BrokerClient::BrokerClient(const string &brokerAddress, int brokerPort, const string &myIp, int myPort) {
     this->brokerServerId = initClient(brokerAddress, brokerPort).serverId;
+    this->myIp = myIp;
+    this->myPort = myPort;
 }
 
 BrokerDeObjetos::IpPuerto BrokerClient::obtenerServidorDisponible() {
@@ -18,7 +20,14 @@ BrokerDeObjetos::IpPuerto BrokerClient::obtenerServidorDisponible() {
     BrokerDeObjetos::IpPuerto servidor = {};
     vector<unsigned char> buffer;
 
+    // Enviamos petición al broker. Incluimos la IP/puerto del cliente
     pack(buffer, BrokerDeObjetos::PETICION_SERVIDOR);
+    
+    // Enviar tamaño e ip y puerto del cliente para que el broker pueda registrar/usar esta info
+    pack(buffer, myIp.size());
+    packv(buffer, myIp.data(), myIp.size());
+    pack(buffer, myPort);
+    
     sendMSG(this->brokerServerId, buffer);
 
     buffer.clear();
@@ -62,6 +71,11 @@ void BrokerClient::desconectarCliente() {
     vector<unsigned char> buffer;
 
     pack(buffer, BrokerDeObjetos::DESCONEXION_CLIENTE);
+    
+    pack(buffer, myIp.size());
+    packv(buffer, myIp.data(), myIp.size());
+    pack(buffer, myPort);
+
     sendMSG(this->brokerServerId, buffer);
 
     buffer.clear();
