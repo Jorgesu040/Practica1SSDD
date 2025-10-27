@@ -1,6 +1,6 @@
+#pragma once
 #include "utils.h"
 #include "filemanager.h"
-#include <string>
 
 
 using namespace std;
@@ -19,12 +19,10 @@ public:
 
 	// Instances de bases de datos creadas por los clientes
 	// Formato clave: clientID - valor: FileManager
-	static inline map<int, FileManager> fileManagerInstances; 
+	static inline map<int, FileManager> fileManagerInstances;
 
-	// id del servidor: serverID
-	static inline int serverID;
-
+	static inline mutex fileManagerMutex;
 
 	static void resolveClientMessages(int clientId);
-	
+
 };

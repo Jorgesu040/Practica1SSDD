@@ -4,6 +4,9 @@
 #include <string>
 #include "clientFileManager.h"
 
+#define ERRORLOG(msg) std::cerr << "[ERROR] " << msg << " (" << __FILE__ << ":" << __LINE__ << ")" << std::endl;
+
+
 void clientFileManager::resolveClientMessages(int clientId)
 {
     vector<unsigned char> buffer;
@@ -12,7 +15,7 @@ void clientFileManager::resolveClientMessages(int clientId)
     {
         // receive a packet from client
         recvMSG(clientId, buffer);
-        msgTypes type = unpack<msgTypes>(buffer);
+        auto type = unpack<msgTypes>(buffer);
         // switch type of the packet
         switch (type)
         {
@@ -26,13 +29,18 @@ void clientFileManager::resolveClientMessages(int clientId)
             // Crear la base datos
             FileManager fileManager(param1);
             // Guardamos la instancia
+
+            fileManagerMutex.lock();
             fileManagerInstances[clientId] = fileManager;
+            fileManagerMutex.unlock();
             buffer.clear();
         }
         break;
         case fileManagerDestructor:
         {
+            fileManagerMutex.lock();
             fileManagerInstances.erase(clientId);
+            fileManagerMutex.unlock();
             buffer.clear();
             logOut = true;
         }
@@ -80,12 +88,12 @@ void clientFileManager::resolveClientMessages(int clientId)
             unpackv(buffer, fileData.data(), fileName.size());
 
             fileManagerInstances[clientId].writeFile(fileName, fileData);
-
-        }
-        break;
-        
+        }break;
 
         default:
+                ERRORLOG("Mensaje no reconocido. Tipo recibido: " + to_string(type));
+                logOut = true;
+
             break;
         }
 
