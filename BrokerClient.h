@@ -1,6 +1,3 @@
-//
-// Created by jorge on 10/24/25.
-//
 #ifndef BROKER_BROKERCLIENT_H
 #define BROKER_BROKERCLIENT_H
 

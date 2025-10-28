@@ -85,7 +85,7 @@ void clientFileManager::resolveClientMessages(int clientId)
             unpackv(buffer, fileName.data(), fileName.size());
 
             fileData.resize(unpack<long int>(buffer));
-            unpackv(buffer, fileData.data(), fileName.size());
+            unpackv(buffer, fileData.data(), fileData.size());
 
             fileManagerInstances[clientId].writeFile(fileName, fileData);
         }break;

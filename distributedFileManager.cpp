@@ -33,10 +33,25 @@ FileManager::FileManager() : FileManager("./") {
 }
 
 FileManager::~FileManager(){
+
+    vector<unsigned char> buffer;
+
     serverMapMutex.lock();
 
     auto it = fileManagerServerIds.find(this);
     if (it != fileManagerServerIds.end()) {
+
+        pack(buffer, clientFileManager::fileManagerDestructor);
+
+        sendMSG(it->second, buffer);
+
+        buffer.clear();
+        recvMSG(it->second, buffer);
+
+        if (unpack<clientFileManager::msgTypes>(buffer) != clientFileManager::ack){
+            ERRORLOG("No se ha recibido el ack del servidor");
+        }
+
         closeConnection(it->second);
         fileManagerServerIds.erase(it);
     }
@@ -93,6 +108,11 @@ vector<string> FileManager::listFiles(){
     vector<string> listedFiles;
     listedFiles.resize(unpack<long int>(buffer));
 
+    for (auto &fileName : listedFiles) {
+        fileName.resize(unpack<long int>(buffer));
+        unpackv(buffer, fileName.data(), fileName.size());
+    }
+
     if (unpack<clientFileManager::msgTypes>(buffer) != clientFileManager::ack){
         ERRORLOG("No se ha recibido el ack del servidor");
     }
@@ -139,6 +159,7 @@ void FileManager::writeFile(string fileName, vector<unsigned char> &data){
     sendMSG(myServerID, buffer);
 
     buffer.clear();
+
     recvMSG(myServerID, buffer);
     if (unpack<clientFileManager::msgTypes>(buffer) != clientFileManager::ack){
         ERRORLOG("No se ha recibido el ack del servidor");

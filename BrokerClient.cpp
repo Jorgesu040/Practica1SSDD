@@ -1,7 +1,3 @@
-//
-// Created by jorge on 10/24/25.
-//
-
 #include "BrokerClient.h"
 #include "utils.h"
 #include "BrokerDeObjetos.h"
@@ -71,10 +67,6 @@ void BrokerClient::desconectarCliente() {
     vector<unsigned char> buffer;
 
     pack(buffer, BrokerDeObjetos::DESCONEXION_CLIENTE);
-    
-    pack(buffer, myIp.size());
-    packv(buffer, myIp.data(), myIp.size());
-    pack(buffer, myPort);
 
     sendMSG(this->brokerServerId, buffer);
 

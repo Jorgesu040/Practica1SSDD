@@ -126,12 +126,22 @@ void BrokerDeObjetos::resolverPeticion(int clientId) {
                 unpackv(buffer, serverIP.ip.data(), serverIP.ip.size());
                 serverIP.port = unpack<int>(buffer);
 
+                buffer.clear();
+                pack(buffer, ack);
+                sendMSG(clientId, buffer);
+                buffer.clear();
+
                 desregistrarServidor(serverIP);
                 logOut = true;
             }
             break;
             case DESCONEXION_CLIENTE: {
                 std::cout << "Broker: DESCONEXION_CLIENTE para cliente " << clientId << std::endl;
+                buffer.clear();
+                pack(buffer, ack);
+                sendMSG(clientId, buffer);
+                buffer.clear();
+
                 liberarConexionCliente(clientId);
                 logOut = true;
             }
@@ -140,10 +150,11 @@ void BrokerDeObjetos::resolverPeticion(int clientId) {
                 std::cout << "Broker: Petición desconocida (" << type << ") para cliente " << clientId << std::endl;
                 break;
         }
-
-        pack(buffer, ack);
-        sendMSG(clientId, buffer);
-        buffer.clear();
+        if (!logOut) {
+            pack(buffer, ack);
+            sendMSG(clientId, buffer);
+            buffer.clear();
+        }
     } while (!logOut);
 
     closeConnection(clientId);

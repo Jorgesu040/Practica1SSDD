@@ -1,7 +1,3 @@
-//
-// Created by jorge on 10/24/25.
-//
-
 #ifndef BROKER_BROKERSERVER_H
 #define BROKER_BROKERSERVER_H
 

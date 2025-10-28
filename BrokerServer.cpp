@@ -1,7 +1,3 @@
-//
-// Created by jorge on 10/24/25.
-//
-
 #include "BrokerServer.h"
 #include "utils.h"
 
@@ -51,7 +47,8 @@ void BrokerServer::desregistrarDeBroker() {
 
     if (unpack<BrokerDeObjetos::brokerMessageType>(buffer) != BrokerDeObjetos::ack) {
         ERRORLOG("No se recibió ACK al desregistrar servidor");
-    }
+    } else
+        cout << "Servidor desregistrado del broker correctamente\n";
 
     closeConnection(this->brokerServerId);
 }

@@ -166,16 +166,6 @@ int main(int argc, char **argv) {
 	}
 
 
-	// Esperar a que terminen todos los threads
-	for (thread* th : threads) {
-		if (th->joinable())
-			th->join();
-		delete th;
-	}
-
-
-
-	close(serverPortId);
 	cout << "Servidor cerrado\n";
 	return 0;
 }
